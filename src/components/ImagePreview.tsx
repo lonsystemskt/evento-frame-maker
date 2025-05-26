@@ -35,20 +35,26 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ userImage, frameImage }) =>
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+          // Aumentar significativamente a área disponível para a foto
           const frameSize = Math.min(frameImg.width, frameImg.height);
-          const circleRadius = frameSize * 0.3;
+          const circleRadius = frameSize * 0.45; // Aumentado de 0.3 para 0.45
           const circleCenterX = canvas.width / 2;
           const circleCenterY = canvas.height / 2;
 
+          // Melhorar o cálculo do tamanho para manter mais da imagem visível
           const userAspectRatio = userImg.width / userImg.height;
-          const baseTargetSize = circleRadius * 2;
+          const baseTargetSize = circleRadius * 2.2; // Aumentado para dar mais espaço
           const targetSize = baseTargetSize * zoomLevel;
           
           let drawWidth, drawHeight;
+          
+          // Ajustar o tamanho baseado no aspect ratio da imagem
           if (userAspectRatio > 1) {
+            // Imagem landscape - ajustar pela altura para manter mais conteúdo
             drawHeight = targetSize;
             drawWidth = drawHeight * userAspectRatio;
           } else {
+            // Imagem portrait - ajustar pela largura para manter mais conteúdo
             drawWidth = targetSize;
             drawHeight = drawWidth / userAspectRatio;
           }
@@ -56,14 +62,18 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ userImage, frameImage }) =>
           const drawX = circleCenterX - drawWidth / 2 + position.x;
           const drawY = circleCenterY - drawHeight / 2 + position.y;
 
+          // Criar clipping circular mais generoso
           ctx.save();
           ctx.beginPath();
           ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, 2 * Math.PI);
           ctx.clip();
 
+          // Desenhar a imagem do usuário
           ctx.drawImage(userImg, drawX, drawY, drawWidth, drawHeight);
           
           ctx.restore();
+          
+          // Desenhar a moldura por cima
           ctx.drawImage(frameImg, 0, 0);
 
           resolve();
