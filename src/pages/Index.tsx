@@ -32,6 +32,32 @@ const Index = () => {
             </p>
           </div>
 
+          {/* Frame Preview Section - Show when no user image is uploaded */}
+          {!userImage && (
+            <div className="max-w-2xl mx-auto mb-16">
+              <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-8">
+                <h3 className="text-xl md:text-2xl font-bold text-center text-gray-800 mb-6">
+                  Exemplo da Moldura
+                </h3>
+                
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <img
+                      src={frameImage}
+                      alt="Exemplo da moldura do evento"
+                      className="max-w-full h-auto rounded-lg shadow-lg"
+                      style={{ maxHeight: '400px' }}
+                    />
+                  </div>
+                </div>
+
+                <p className="text-center text-gray-600 mb-8">
+                  Veja como ficará sua foto com a moldura oficial do evento!
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Upload Section */}
           {!userImage && (
             <div className="max-w-2xl mx-auto mb-16">
