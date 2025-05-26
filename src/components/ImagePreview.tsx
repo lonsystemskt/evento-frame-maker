@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
 import PhotoControls from './PhotoControls';
@@ -122,14 +121,113 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ userImage, frameImage }) =>
     await generateCompositeImage();
     
     const canvas = canvasRef.current;
-    if (canvas) {
-      const link = document.createElement('a');
-      link.download = 'eu-no-evento.png';
-      link.href = canvas.toDataURL();
-      link.click();
+    if (!canvas) {
+      setIsGenerating(false);
+      return;
     }
-    
-    setIsGenerating(false);
+
+    try {
+      // Detectar se é iOS/Safari
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isIOS || isSafari) {
+        // Solução específica para iOS/Safari
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            setIsGenerating(false);
+            return;
+          }
+          
+          const url = URL.createObjectURL(blob);
+          
+          // Criar um link temporário e abrir em nova janela
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            newWindow.document.write(`
+              <html>
+                <head>
+                  <title>Baixar Imagem</title>
+                  <style>
+                    body { 
+                      margin: 0; 
+                      padding: 20px; 
+                      font-family: Arial, sans-serif;
+                      text-align: center;
+                      background: #f5f5f5;
+                    }
+                    img { 
+                      max-width: 100%; 
+                      height: auto; 
+                      border-radius: 10px;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    }
+                    .download-btn {
+                      background: linear-gradient(to right, #3b82f6, #ef4444);
+                      color: white;
+                      border: none;
+                      padding: 15px 30px;
+                      border-radius: 10px;
+                      font-size: 16px;
+                      margin: 20px;
+                      cursor: pointer;
+                      text-decoration: none;
+                      display: inline-block;
+                    }
+                    .instructions {
+                      background: white;
+                      padding: 20px;
+                      border-radius: 10px;
+                      margin: 20px 0;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    }
+                  </style>
+                </head>
+                <body>
+                  <h2>Sua Foto com Moldura</h2>
+                  <img src="${url}" alt="Foto com moldura" />
+                  <br>
+                  <a href="${url}" download="eu-no-evento.png" class="download-btn">
+                    📥 Baixar Imagem
+                  </a>
+                  <div class="instructions">
+                    <h3>📱 No iOS/iPhone:</h3>
+                    <p>1. Toque e segure na imagem acima</p>
+                    <p>2. Selecione "Salvar na Galeria de Fotos"</p>
+                    <p>3. Ou toque no botão "Baixar Imagem" acima</p>
+                  </div>
+                </body>
+              </html>
+            `);
+          }
+          
+          URL.revokeObjectURL(url);
+          setIsGenerating(false);
+        }, 'image/png', 0.95);
+      } else {
+        // Método padrão para outros navegadores
+        const link = document.createElement('a');
+        link.download = 'eu-no-evento.png';
+        link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setIsGenerating(false);
+      }
+    } catch (error) {
+      console.error('Erro no download:', error);
+      // Fallback: converter para data URL e abrir em nova janela
+      const dataURL = canvas.toDataURL('image/png');
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <img src="${dataURL}" style="max-width: 100%; height: auto;" />
+          <br><br>
+          <p>Toque e segure na imagem para salvar (iOS) ou clique com botão direito para salvar</p>
+        `);
+      }
+      setIsGenerating(false);
+    }
   };
 
   const handleShare = async () => {
